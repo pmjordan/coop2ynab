@@ -1,48 +1,61 @@
 #!/usr/bin/env python3
 
+#Input is a csv file in format supplied by co-operative bank 
+#Output is a csv file in format required by YNAB 4
+
+# Input file is selected by the user at runtime via a GUI
+# Output file location may be passed as an argument
+
 from sys import exit
+from sys import argv
 import csv
-from tkinter import *
+from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox
 import re
 import datetime
+import os.path
+import csv
 
-
-
-Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-# show an "Open" dialog box and return the path to the selected file
-filename = askopenfilename(filetypes=[("CSV files","*.csv")],initialdir = 'C:/Users/Paul/Downloads/') 
-
-
+#Initialise variables
 firstdatestr = '02/09/2016'
 oldlinecount = 0
 visaformat = False
 
+#Set output file name
+if len(argv) == 2:
+    outfilepath = argv[1]
+else: outfilepath = 'ynab.csv'
+
+#Get input file name
+tkinter.Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+# show an "Open" dialog box and return the path to the selected file
+filename = askopenfilename(filetypes=[("CSV files","*.csv")],initialdir = 'C:/Users/Paul/Downloads/') 
 
 
+# Get from user the date of the first record to be processed
 firstdatestr=input('From date in dd/mm/yyyy: ')
 firstdateobj = datetime.datetime.strptime(firstdatestr, '%d/%m/%Y')
 
-import csv
 
-
-
+#open the input
 try:
     infile = open(filename, "r")
     infile.close
 except:
     print("Can't open file at",filename)
 
-outfilepath = 'C:/Users/Paul/Documents/finance/ynab.csv'
+
+#open the output
 try:
     outfile = open(outfilepath, "wb")
     outfile.close
 except:
     print("Can't open file at",outfilepath)
 
-# b for binary mode prevents an extra return in the row terminator
-with open (outfilepath,'wb') as outfile:
+# In python2 a b for binary mode prevents an extra return in the row terminator
+# removed in python 3
+with open (outfilepath,'w', newline='') as outfile:
     outwriter = csv.writer(outfile,)
     with open(filename) as csvfile:
         statement = csv.reader(csvfile, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL,lineterminator='')
@@ -80,8 +93,8 @@ with open (outfilepath,'wb') as outfile:
                     exit(0)
             else:
                 #this is a data line, check date format
-                if re.search('/[0-9][0-9]\/[0-9][0-9]\/20[0-9][0-9]/', date):
-                    print("The date format is not supported at line %s , should be DD/MM/YYYY", linecount)  ;  
+                if re.search(r'/[0-9][0-9]\/[0-9][0-9]\/20[0-9][0-9]/', date):
+                    print("The date format is not supported at line %s , should be DD/MM/YYYY", linecount) 
                 #this is a valid transaction line
                 # is line too old?
                 try:
@@ -102,8 +115,8 @@ with open (outfilepath,'wb') as outfile:
                 if transactiontype=="CHEQUE":
                     description = "Cheque Number " + description
                 if transactiontype=="ATM":
-                    transactiontype = description;
-                    description = "Transfer:Cash";
+                    transactiontype = description
+                    description = "Transfer:Cash"
                 if visaformat:
                     if expense != '':
                         expense = float(expense)*(-1)
@@ -116,6 +129,3 @@ with open (outfilepath,'wb') as outfile:
     
 print('found this many old lines',oldlinecount)
 print('output sent to',outfilepath)
-
-
-
