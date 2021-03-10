@@ -7,3 +7,5 @@ Output file location may be passed as an argument but defaults to ynab.csv
 A sample of input and output are supplied
 
 The programming style is very old fashioned - I wrote the original a long time ago
+
+Potential users of this code are directed to the bank2ynab project which provides a more general solution.
